@@ -98,10 +98,10 @@ const empty = {
   message: "",
 };
 
-// Change these before using this in production.
-const FORM_SUBMISSION_MODE = "email"; // "email" or "google"
-const EMAIL_TO = "hello@yourdomain.com";
-const GOOGLE_FORM_URL = ""; // Example: "https://docs.google.com/forms/d/FORM_ID/viewform"
+const FORM_SUBMISSION_MODE =
+  import.meta.env.VITE_FORM_SUBMISSION_MODE || "email";
+const EMAIL_TO = import.meta.env.VITE_JOBMATCH_EMAIL || "";
+const GOOGLE_FORM_URL = import.meta.env.VITE_GOOGLE_FORM_URL || "";
 
 function buildSubmissionPayload(form) {
   const lines = [
@@ -123,6 +123,12 @@ function handleEmailSubmission(payload) {
   const subject = encodeURIComponent(`JobMatch inquiry from ${payload.name}`);
   const body = encodeURIComponent(payload.summary);
   window.location.href = `mailto:${EMAIL_TO}?subject=${subject}&body=${body}`;
+}
+
+function hasSubmissionDestination() {
+  return FORM_SUBMISSION_MODE === "google"
+    ? Boolean(GOOGLE_FORM_URL)
+    : Boolean(EMAIL_TO);
 }
 
 function handleGoogleFormSubmission(payload) {
@@ -156,10 +162,18 @@ function App() {
   const [menu, setMenu] = useState(false),
     [form, setForm] = useState(empty),
     [submitted, setSubmitted] = useState(false),
+    [submissionError, setSubmissionError] = useState(""),
     [busy, setBusy] = useState(false);
   const set = (k, v) => setForm((x) => ({ ...x, [k]: v }));
   async function submit(e) {
     e.preventDefault();
+    if (!hasSubmissionDestination()) {
+      setSubmissionError(
+        "This form is not connected yet. Add VITE_JOBMATCH_EMAIL or VITE_GOOGLE_FORM_URL to configure where requests should go.",
+      );
+      return;
+    }
+    setSubmissionError("");
     setBusy(true);
     const payload = buildSubmissionPayload(form);
     await new Promise((r) => setTimeout(r, 700));
@@ -736,6 +750,14 @@ function App() {
                       </Field>
                     </div>
                   </div>
+                  {submissionError && (
+                    <p
+                      role="alert"
+                      className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-900"
+                    >
+                      {submissionError}
+                    </p>
+                  )}
                   <div className="mt-7 flex flex-col gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex max-w-xl gap-2 text-xs leading-5 text-slate-500">
                       <ShieldCheck
