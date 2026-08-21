@@ -79,9 +79,9 @@ const packages = [
     price: 299,
     desc: "Highly personalized support for executive searches.",
     items: [
-      "5 highly targeted senior opportunities",
+      "3 highly targeted senior opportunities",
       "Executive CV optimization",
-      "5 tailored cover letters",
+      "3 tailored cover letters",
       "LinkedIn positioning review",
       "Executive job-search strategy call",
       "Application tracking",
